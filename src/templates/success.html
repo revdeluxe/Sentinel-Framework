@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Success - Sentinel Framework{% endblock %}
+{% block content %}
+<div class="card card-success mx-auto" style="max-width:400px;">
+    <div class="card-header">
+        <h3 class="card-title">Authentication Successful</h3>
+    </div>
+    <div class="card-body text-center">
+        <p class="lead">You will be redirected to OPNsense shortly.</p>
+        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+    </div>
+</div>
+<script>
+setTimeout(function() {
+    window.location.href = "https://your-opnsense-url";
+}, 3000);
+</script>
+{% endblock %}

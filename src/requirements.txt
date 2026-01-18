@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+sqlmodel
+tensorflow
+jinja2
+python-multipart

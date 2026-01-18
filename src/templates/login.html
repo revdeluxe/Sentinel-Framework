@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card card-outline card-primary shadow">
+            <div class="card-header text-center">
+                <a href="/" class="h1"><b>Sentinel</b> Framework</a>
+            </div>
+            <div class="card-body login-card-body">
+                <p class="login-box-msg">Sign in to start your session</p>
+                <form method="post" id="loginForm">
+                    <div class="input-group mb-3">
+                        <input type="text" name="username" class="form-control" placeholder="Username" required>
+                        <div class="input-group-append">
+                            <div class="input-group-text"><span class="fas fa-user"></span></div>
+                        </div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <input type="password" name="password" class="form-control" placeholder="Password" required>
+                        <div class="input-group-append">
+                            <div class="input-group-text"><span class="fas fa-lock"></span></div>
+                        </div>
+                    </div>
+                    <div id="adminFields" style="display:none;">
+                        <div class="alert alert-info p-2 mb-2"><i class="fas fa-user-shield"></i> <b>Admin Login</b> (Key Combo detected)</div>
+                        <!-- You can add extra admin-only fields here if needed -->
+                    </div>
+                    <input type="hidden" name="admin_mode" id="admin_mode" value="0">
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary btn-block btn-lg">Login</button>
+                        </div>
+                    </div>
+                </form>
+                {% if error %}<p class="text-danger mt-2">{{ error }}</p>{% endif %}
+                <hr>
+                <div class="social-auth-links text-center mb-3">
+                    <p>- OR -</p>
+                    <a href="#" class="btn btn-block btn-outline-danger mb-2"><i class="fab fa-google mr-2"></i> Sign in using Google</a>
+                    <a href="#" class="btn btn-block btn-outline-primary mb-2"><i class="fab fa-facebook-f mr-2"></i> Sign in using Facebook</a>
+                    <!-- Add more 3rd party providers as needed -->
+                </div>
+                <div class="text-center mb-2">
+                    <a href="/scan" class="btn btn-block btn-outline-success"><i class="fas fa-camera"></i> Facial Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+// Listen for Shift+F2 to enable admin login UI
+document.addEventListener('keydown', function(e) {
+        if (e.shiftKey && e.key === 'F2') {
+                document.getElementById('adminFields').style.display = '';
+                document.getElementById('admin_mode').value = '1';
+        }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Home - Sentinel Framework{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-8 col-lg-6">
+    <div class="card card-primary shadow">
+      <div class="card-header text-center">
+        <h2 class="card-title mb-0">Welcome to Sentinel Framework</h2>
+      </div>
+      <div class="card-body text-center">
+        <p class="lead">Click below to start biometric authentication.</p>
+        <a href="/scan" class="btn btn-success btn-lg m-2"><i class="fas fa-fingerprint mr-1"></i> Start Scan</a>
+        <a href="/login" class="btn btn-primary btn-lg m-2"><i class="fas fa-sign-in-alt mr-1"></i> Login</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
