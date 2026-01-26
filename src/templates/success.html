@@ -1,18 +1,41 @@
 {% extends 'base.html' %}
-{% block title %}Success - Sentinel Framework{% endblock %}
+{% block title %}Authorized | Sentinel{% endblock %}
 {% block content %}
-<div class="card card-success mx-auto" style="max-width:400px;">
-    <div class="card-header">
-        <h3 class="card-title">Authentication Successful</h3>
-    </div>
-    <div class="card-body text-center">
-        <p class="lead">You will be redirected to OPNsense shortly.</p>
-        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card card-success card-outline text-center shadow">
+            <div class="card-header">
+                <h3 class="card-title text-success w-100 font-weight-bold">
+                    <i class="fas fa-shield-check"></i> Access Granted
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="my-4">
+                    <i class="fas fa-check-circle fa-5x text-success"></i>
+                </div>
+                <h4 class="mb-3">Identity Verified</h4>
+                <p class="text-muted">Your MAC address has been whitelisted on OPNsense.</p>
+                
+                <p class="small text-muted mb-1">Redirecting to firewall...</p>
+                <div class="progress progress-xs">
+                    <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" id="redirectBar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
 <script>
-setTimeout(function() {
-    window.location.href = "https://your-opnsense-url";
-}, 3000);
+    let width = 0;
+    const interval = setInterval(() => {
+        width += 2; // Speed of bar
+        document.getElementById('redirectBar').style.width = width + '%';
+        if(width >= 100) clearInterval(interval);
+    }, 50);
+
+    setTimeout(function() {
+        window.location.href = "https://your-opnsense-url"; // Replace with config variable
+    }, 2500);
 </script>
 {% endblock %}

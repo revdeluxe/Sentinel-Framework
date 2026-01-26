@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% block title %}System Initialization | Sentinel{% endblock %}
+{% block header_title %}Core Initialization{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="card card-dark shadow-lg border-0">
+            <div class="card-header">
+                <h3 class="card-title text-bold">
+                    <i class="fas fa-server mr-2"></i> Sentinel Framework Setup
+                </h3>
+            </div>
+            
+            <div class="card-body p-0">
+                <div class="row no-gutters">
+                    <div class="col-md-4 bg-light d-none d-md-block border-right">
+                        <div class="p-4">
+                            <h5 class="text-primary mb-3">Setup Guide</h5>
+                            <ul class="list-unstyled text-sm">
+                                <li class="mb-3 text-bold text-dark"><i class="fas fa-check-circle text-success mr-2"></i> 1. Admin Credentials</li>
+                                <li class="mb-3 text-muted" id="step2-indicator"><i class="far fa-circle mr-2"></i> 2. Deployment Mode</li>
+                                <li class="mb-3 text-muted" id="step3-indicator"><i class="far fa-circle mr-2"></i> 3. Target Configuration</li>
+                            </ul>
+                            <hr>
+                            <div class="alert alert-info text-xs">
+                                <i class="fas fa-info-circle"></i> This wizard configures the <b>Core Middleware</b> logic. You can change these settings later in the Admin Panel.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-8">
+                        <div class="p-4">
+                            <form method="post" id="setupForm">
+                                
+                                <h5 class="mb-3 text-dark border-bottom pb-2">1. Administrator Account</h5>
+                                <div class="row">
+                                    <div class="col-md-6 form-group">
+                                        <label>Superuser Name</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                            </div>
+                                            <input type="text" class="form-control" name="admin_username" placeholder="e.g. root" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label>Password</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                            </div>
+                                            <input type="password" class="form-control" name="admin_password" placeholder="********" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <h5 class="mb-3 text-dark border-bottom pb-2 mt-4">2. Deployment Profile</h5>
+                                <div class="form-group">
+                                    <label>Select Operational Mode</label>
+                                    <select class="form-control custom-select" id="deployment_mode" name="deployment_mode" onchange="toggleConfig()">
+                                        <option value="" disabled selected>-- Choose your Environment --</option>
+                                        <option value="gateway">Network Security Gateway (Firewall/Router)</option>
+                                        <option value="kiosk">Public Access Kiosk / Vendo Machine</option>
+                                        <option value="attendance">Workforce/School Attendance System</option>
+                                    </select>
+                                    <small class="form-text text-muted" id="mode_desc">Select how this Sentinel instance will be used.</small>
+                                </div>
+
+                                <div id="dynamic_section" style="display:none;">
+                                    <h5 class="mb-3 text-dark border-bottom pb-2 mt-4">3. Target Configuration</h5>
+                                    
+                                    <div id="config_gateway" class="config-pane" style="display:none;">
+                                        <div class="alert alert-secondary text-sm">
+                                            <i class="fas fa-network-wired"></i> Designed for <b>Captive Portals</b>. Authenticates users before granting internet access.
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Backend Type</label>
+                                            <select class="form-control" name="gw_type">
+                                                <option value="opnsense">OPNsense (XML-RPC)</option>
+                                                <option value="pfsense">pfSense</option>
+                                                <option value="openwrt">OpenWrt (SSH/Lua)</option>
+                                                <option value="mikrotik">MikroTik RouterOS (API)</option>
+                                                <option value="pihole">Pi-hole / Linux Iptables</option>
+                                            </select>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-8 form-group">
+                                                <label>Gateway IP / Hostname</label>
+                                                <input type="text" class="form-control" placeholder="192.168.1.1">
+                                            </div>
+                                            <div class="col-md-4 form-group">
+                                                <label>API Port</label>
+                                                <input type="number" class="form-control" placeholder="443">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div id="config_kiosk" class="config-pane" style="display:none;">
+                                        <div class="alert alert-warning text-sm">
+                                            <i class="fas fa-coins"></i> Designed for <b>Pay-per-use</b> or <b>Public Wi-Fi</b>. Grants access for a specific duration.
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Pricing Logic</label>
+                                            <select class="form-control" name="kiosk_logic">
+                                                <option value="free">Free Access (Data Collection Only)</option>
+                                                <option value="coin">Coin Acceptor (Pulse)</option>
+                                                <option value="voucher">Pre-paid Vouchers</option>
+                                            </select>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 form-group">
+                                                <label>Default Session (Minutes)</label>
+                                                <input type="number" class="form-control" value="60">
+                                            </div>
+                                            <div class="col-md-6 form-group">
+                                                <label>Idle Timeout</label>
+                                                <input type="number" class="form-control" value="5">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div id="config_attendance" class="config-pane" style="display:none;">
+                                        <div class="alert alert-success text-sm">
+                                            <i class="fas fa-clock"></i> Designed for <b>Time Tracking</b>. Logs entry/exit without controlling network traffic.
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Organization Name</label>
+                                            <input type="text" class="form-control" placeholder="EARIST - CCS">
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 form-group">
+                                                <label>Shift Start Time</label>
+                                                <input type="time" class="form-control" value="08:00">
+                                            </div>
+                                            <div class="col-md-6 form-group">
+                                                <label>Late Tolerance (Min)</label>
+                                                <input type="number" class="form-control" value="15">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr class="mt-4">
+                                <button type="submit" class="btn btn-primary btn-block btn-lg shadow">
+                                    <i class="fas fa-rocket mr-2"></i> Initialize System
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleConfig() {
+        // 1. Show the dynamic section wrapper
+        document.getElementById('dynamic_section').style.display = 'block';
+        
+        // 2. Hide all specific panes
+        const panes = document.getElementsByClassName('config-pane');
+        for (let i = 0; i < panes.length; i++) {
+            panes[i].style.display = 'none';
+        }
+
+        // 3. Show selected pane
+        const mode = document.getElementById('deployment_mode').value;
+        const selectedPane = document.getElementById('config_' + mode);
+        if (selectedPane) {
+            selectedPane.style.display = 'block';
+            
+            // Visual feedback for Step 2
+            document.getElementById('step2-indicator').classList.remove('text-muted');
+            document.getElementById('step2-indicator').classList.add('text-dark', 'text-bold');
+            document.getElementById('step2-indicator').innerHTML = '<i class="fas fa-check-circle text-success mr-2"></i> 2. Deployment Mode';
+            
+            // Visual feedback for Step 3
+            document.getElementById('step3-indicator').classList.remove('text-muted');
+            document.getElementById('step3-indicator').classList.add('text-primary', 'text-bold');
+        }
+
+        // 4. Update Description Text
+        const desc = document.getElementById('mode_desc');
+        if(mode === 'gateway') desc.innerHTML = "Configuring for OPNsense, OpenWrt, or MikroTik integration.";
+        else if(mode === 'kiosk') desc.innerHTML = "Configuring for Standalone Vendo or Public Info Kiosk.";
+        else if(mode === 'attendance') desc.innerHTML = "Configuring for Time-in/Time-out logging only.";
+    }
+</script>
+{% endblock %}

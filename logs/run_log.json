@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-01-18T20:55:37.588719",
+  "timestamp": "2026-01-21T22:47:11.757388",
   "mode": "dev",
   "checksums": {
     "src\\database.py": "1d6bc4632d9138fac5d00ae1fbfaa3fec7730e44ad0ca0b268a5ce0ea1b11d9e",
@@ -7,15 +7,14 @@
     "src\\ml_engine.py": "59bc5ed40699bbe6d0a0af9a45b3ef40f0b0078c8563e3993aef1b57e49f6233",
     "src\\requirements.txt": "e71e4ab6bfe1574577153031088d6889ba3997dd6202cd355cd432370424bf40",
     "src\\table.py": "a6e23be65d3adf483a1b6d0db29ba2944536ec379e29a6dd67260fc659096540",
-    "src\\static\\css\\adminlte.min.css": "61bfef196df0c355b17790825fbd38123683724902393aafc5ea592d72f066c6",
-    "src\\static\\css\\style.css": "d7b0c90b0575bce3e3f7233c92c067bed8962ef5bb5346ef493bae9cc8357d88",
-    "src\\static\\js\\adminlte.min.js": "f428d7cbbabbe5569dd6821aff7857b2b2808a97ee97b872d966c2c232788f03",
+    "src\\static\\cert\\cert.pem": "103491c52d33632bdf496b3631973fd786fa1eeae5516c10698ead343180bb29",
+    "src\\static\\cert\\key.pem": "750914d908d01a1fcbe1e88c206219a12e08476ffd8a037afbc3f2fae06652bc",
     "src\\templates\\admin_panel.html": "ac50bf9eb3dadc3453d7b0cc10828f7021ecc50d9c9e876984d0b62afd5ed8f5",
-    "src\\templates\\base.html": "d318787dec8405d35b566ad3268d5901097e6689e92c4205122a22a8cb1d4950",
+    "src\\templates\\base.html": "4111f6a41005d424c48adb5105cc12e97a42ab3a774b70df2df4cc2f7899a527",
     "src\\templates\\index.html": "5ba1b9ecbe79759889ea9ea8fb40b849027753e35335cd941f4ae19b2935aed2",
-    "src\\templates\\login.html": "2bd27f90359154b378d2d2f032ff2b538670f2ef0d5a3036152866dafc5af07e",
-    "src\\templates\\scan.html": "3dd9acd3cf2381049403e57cc85135d87e291e27ba5ece23ca9913febb58d88d",
-    "src\\templates\\success.html": "3b0228f0447452b481c092333c46a0463fa41fa27972b4182f97a0e26a2a77c1",
+    "src\\templates\\login.html": "edc85298066ebfa3cda12648d16660b8c974ccb510cf4933dd51d051a983b391",
+    "src\\templates\\scan.html": "1709558382d39e27e08f9002eada9e5f15e004f5c09ec0069efb9e5ad339fdc8",
+    "src\\templates\\success.html": "df418856bd6668e40b2711a8876ef45e1e4c1c521547053ad7ba224e7fbe784f",
     "src\\__pycache__\\database.cpython-313.pyc": "e30c72ca78cd13a3dbeca3daa1b0a2b80e10e60762b12e9e81fa11ad73616cdd",
     "src\\__pycache__\\main.cpython-313.pyc": "4644751c0db2df4f8d7eda87b901712b968394ca684427be330852c64ba3e577",
     "src\\__pycache__\\table.cpython-313.pyc": "b9384740f1e4efb2142f798d2534c38b2414f6480d09538a9f3a222a595b15c9"

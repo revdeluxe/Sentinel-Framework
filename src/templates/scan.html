@@ -1,49 +1,162 @@
 {% extends 'base.html' %}
-{% block title %}Scan - Sentinel Framework{% endblock %}
+
+{% block title %}Biometric Scan | Sentinel{% endblock %}
+{% block header_title %}Identity Verification{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-8 col-lg-6">
-        <div class="card card-success shadow">
+<style>
+    /* Scanner HUD Overlay - FaceID Style */
+    .scanner-container {
+        position: relative;
+        width: 320px;
+        margin: 0 auto;
+        overflow: hidden;
+        border-radius: 20px; /* More rounded like mobile */
+        box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    }
+    
+    .scanner-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 10;
+        border: 2px solid rgba(0, 255, 0, 0.0); /* Hidden by default */
+        transition: border-color 0.3s ease;
+    }
+
+    /* Scanning Animation */
+    .scan-line {
+        position: absolute;
+        width: 100%;
+        height: 4px;
+        background: #00ff00;
+        box-shadow: 0 0 15px #00ff00;
+        animation: scanMove 1.5s infinite alternate;
+        opacity: 0.8;
+    }
+
+    @keyframes scanMove {
+        0% { top: 5%; }
+        100% { top: 95%; }
+    }
+    
+    /* Status Text Overlay */
+    .status-overlay {
+        position: absolute;
+        bottom: 20px;
+        left: 0; right: 0;
+        text-align: center;
+        color: white;
+        z-index: 12;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    
+    .status-icon { font-size: 2rem; display: block; margin-bottom: 5px; }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card card-dark border-0 shadow-lg">
             <div class="card-header text-center">
-                <h3 class="card-title mb-0">Biometric Capture</h3>
+                <h5 class="mb-0">Look at the camera</h5>
             </div>
-            <div class="card-body">
-                <p class="lead text-center">Allow camera access and capture your face for authentication.</p>
-                <form method="post">
-                    <input type="hidden" name="image_data" id="image_data">
-                    <div class="mb-3 text-center">
-                        <video id="video" width="320" height="240" autoplay class="border rounded"></video>
-                        <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+            <div class="card-body bg-black p-4 text-center" style="background-color: #121212;">
+                
+                <div class="scanner-container">
+                    <div class="scanner-overlay" id="scan-border">
+                        <div class="scan-line" id="scan-line"></div>
                     </div>
-                    <div class="row">
-                        <div class="col-6 mb-2">
-                            <button type="button" onclick="capture()" class="btn btn-outline-primary btn-block w-100"><i class="fas fa-camera"></i> Capture</button>
-                        </div>
-                        <div class="col-6 mb-2">
-                            <button type="submit" class="btn btn-success btn-block w-100"><i class="fas fa-upload"></i> Submit</button>
-                        </div>
+                    
+                    <div class="status-overlay" id="status-text">
+                        <i class="fas fa-search status-icon text-secondary"></i>
+                        Initializing...
                     </div>
-                </form>
+
+                    <video id="video" width="320" height="240" autoplay playsinline style="width: 100%; display: block; transform: scaleX(-1);"></video>
+                    
+                    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+                </div>
+
+                <div class="mt-3 text-muted small">
+                    <i class="fas fa-shield-alt mr-1"></i> Biometric Engine Active
+                </div>
             </div>
         </div>
     </div>
 </div>
-<script>
-function capture() {
-        var video = document.getElementById('video');
-        var canvas = document.getElementById('canvas');
-        var context = canvas.getContext('2d');
-        context.drawImage(video, 0, 0, 320, 240);
-        var dataURL = canvas.toDataURL('image/png');
-        document.getElementById('image_data').value = dataURL;
-}
 
-navigator.mediaDevices.getUserMedia({ video: true })
-        .then(function(stream) {
-                document.getElementById('video').srcObject = stream;
-        })
-        .catch(function(err) {
-                alert('Camera access denied: ' + err);
-        });
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const statusText = document.getElementById('status-text');
+    const scanBorder = document.getElementById('scan-border');
+    
+    let isScanning = true;
+
+    // 1. Start Camera
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+            .then(function(stream) {
+                video.srcObject = stream;
+                video.play();
+                statusText.innerHTML = '<i class="fas fa-dot-circle status-icon text-primary"></i> Scanning...';
+                
+                // Start the polling loop
+                setInterval(processFrame, 1500); // Check every 1.5 seconds
+            })
+            .catch(function(err) {
+                statusText.innerHTML = '<i class="fas fa-exclamation-triangle status-icon text-danger"></i> Camera Error';
+            });
+    }
+
+    // 2. The Loop: Capture -> Send -> React
+    async function processFrame() {
+        if (!isScanning) return;
+
+        // Draw current video frame to canvas
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, 320, 240);
+        
+        // Convert to Base64 String
+        const imageData = canvas.toDataURL('image/jpeg', 0.8); // 80% quality JPEG
+
+        // Send to Backend API
+        try {
+            const response = await fetch('/api/biometric-auth', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image_b64: imageData })
+            });
+
+            const result = await response.json();
+
+            if (result.status === "success") {
+                handleSuccess(result.user);
+            } else if (result.status === "unknown") {
+                statusText.innerHTML = '<i class="fas fa-user-slash status-icon text-warning"></i> Face Not Recognized';
+                scanBorder.style.borderColor = "rgba(255, 193, 7, 0.5)"; // Yellow border
+            } else {
+                statusText.innerHTML = '<i class="fas fa-spinner fa-spin status-icon text-white"></i> Analyzing...';
+                scanBorder.style.borderColor = "rgba(255, 255, 255, 0.2)";
+            }
+
+        } catch (error) {
+            console.error("API Error:", error);
+        }
+    }
+
+    function handleSuccess(username) {
+        isScanning = false;
+        // Visual Feedback: Green Border & Checkmark
+        scanBorder.style.borderColor = "#28a745"; // Green
+        document.getElementById('scan-line').style.display = 'none'; // Stop scan line
+        statusText.innerHTML = `<i class="fas fa-check-circle status-icon text-success"></i> Welcome, ${username}`;
+        
+        // Redirect after short delay
+        setTimeout(() => {
+            window.location.href = "/success"; // Redirect to Success Page
+        }, 1500);
+    }
 </script>
 {% endblock %}
