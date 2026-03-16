@@ -1,6 +1,10 @@
 fastapi
 uvicorn
 sqlmodel
-tensorflow
+# TensorFlow wheels are not available for Python 3.13+ yet.
+tensorflow; python_version < "3.13"
 jinja2
 python-multipart
+itsdangerous
+numpy
+Pillow
