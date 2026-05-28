@@ -3,6 +3,8 @@ from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 from datetime import datetime
 
+FACE_EMBEDDING_DIMENSION = 128
+
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     username: str = Field(index=True, unique=True)
@@ -15,6 +17,7 @@ class User(SQLModel, table=True):
     admin_key: Optional[str] = Field(default=None, nullable=True) 
     
     full_name: Optional[str] = None
+    email: Optional[str] = Field(default=None, nullable=True)
     created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
     
     # Relationships

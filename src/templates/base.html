@@ -12,22 +12,45 @@
         :root { --sentinel-primary: #007bff; --sentinel-dark: #343a40; }
         /* Only apply dashboard background if logged in */
         body.sidebar-mini { background-color: #f4f6f9; }
+        body.home-page { background: #f4f6f9; display: block; padding: 2rem 1rem; }
         /* Center login page content */
         body.login-page { justify-content: center; align-items: center; background: #e9ecef; }
+        body.setup-page { justify-content: flex-start; align-items: flex-start; padding: 2rem 1rem; }
+        body.setup-page .login-box { width: min(1120px, calc(100vw - 2rem)); max-width: 1120px; padding: 0; }
+        body.home-page .home-shell { width: min(1400px, calc(100vw - 2rem)); margin: 0 auto; }
         .brand-link { background-color: var(--sentinel-dark) !important; color: white !important; }
         .nav-header { font-size: .85rem; font-weight: bold; color: #6c757d; margin-top: 10px; }
     </style>
 </head>
 
-<body class="hold-transition {% if request.session.get('user_id') %}sidebar-mini layout-fixed layout-navbar-fixed{% else %}login-page{% endif %}">
+{% set current_path = request.url.path %}
+{% set is_logged_in = request.session.get('user_id') %}
+{% set is_admin_session = request.session.get('is_admin') %}
+{% set current_mode = mode if mode else 'gateway' %}
+{% set is_admin_panel = current_path.startswith('/admin') %}
+{% set is_client_panel = current_path in ['/', '/scan', '/success', '/settings', '/about'] %}
+{% set is_home_page = current_path == '/' %}
+{% set show_sidebar = is_logged_in and (is_admin_panel or is_client_panel) and current_path != '/setup' and current_path != '/login' %}
 
-    {% if request.session.get("user_id") %}
+<body class="hold-transition {% if current_path == '/setup' %}login-page setup-page{% elif show_sidebar %}sidebar-mini layout-fixed layout-navbar-fixed{% elif is_home_page %}home-page{% else %}login-page{% endif %}">
+
+    {% if show_sidebar %}
     <div class="wrapper">
         <nav class="main-header navbar navbar-expand navbar-white navbar-light">
             <ul class="navbar-nav">
                 <li class="nav-item">
                     <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
                 </li>
+            </ul>
+            <ul class="navbar-nav ml-auto">
+                {% if request.session.get('username') or request.session.get('full_name') %}
+                <li class="nav-item">
+                    <span class="nav-link text-muted">
+                        <i class="fas fa-user mr-1"></i>
+                        {{ request.session.get('username') or request.session.get('full_name') }}
+                    </span>
+                </li>
+                {% endif %}
             </ul>
         </nav>
 
@@ -42,7 +65,7 @@
             <div class="sidebar">
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
-                        
+                        {% if is_admin_session and is_admin_panel %}
                         {% if mode == 'gateway' %}
                             {% include 'components/sidebar_gateway.html' %}
                         {% elif mode == 'kiosk' %}
@@ -51,10 +74,23 @@
                             {% include 'components/sidebar_attendance.html' %}
                         {% endif %}
 
+                        <li class="nav-item mt-2">
+                            <a href="/" class="nav-link">
+                                <i class="nav-icon fas fa-user"></i>
+                                <p>User Dashboard</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/admin" class="nav-link">
+                                <i class="nav-icon fas fa-user-shield"></i>
+                                <p>Admin Dashboard</p>
+                            </a>
+                        </li>
+
                         <li class="nav-header mt-3 border-top pt-2">SYSTEM ADMINISTRATION</li>
                         
                         <li class="nav-item">
-                            <a href="/admin/accounts" class="nav-link">
+                            <a href="/admin/users" class="nav-link">
                                 <i class="nav-icon fas fa-user-cog"></i>
                                 <p>User Accounts</p>
                             </a>
@@ -67,6 +103,35 @@
                                 <p>Admin Key Manager</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="/admin/faceid-debug" class="nav-link">
+                                <i class="nav-icon fas fa-bug"></i>
+                                <p>FaceID Debugging</p>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% if request.session.get("is_superuser") %}
+                        <li class="nav-item">
+                            <a href="/admin/settings" class="nav-link">
+                                <i class="nav-icon fas fa-sliders-h"></i>
+                                <p>Sentinel Settings</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="/about" class="nav-link">
+                                <i class="nav-icon fas fa-circle-info"></i>
+                                <p>About</p>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="nav-item">
+                            <a href="/about" class="nav-link">
+                                <i class="nav-icon fas fa-circle-info"></i>
+                                <p>About</p>
+                            </a>
+                        </li>
                         {% endif %}
 
                         <li class="nav-item">
@@ -75,6 +140,40 @@
                                 <p>Logout</p>
                             </a>
                         </li>
+
+                        {% elif is_client_panel %}
+                        <li class="nav-header">{% if current_mode == 'attendance' %}WORKFORCE ATTENDANCE{% else %}CLIENT PANEL{% endif %}</li>
+                        <li class="nav-item">
+                            <a href="/" class="nav-link">
+                                <i class="nav-icon fas fa-home"></i>
+                                <p>{% if current_mode == 'attendance' %}Attendance Dashboard{% else %}Home{% endif %}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/scan" class="nav-link">
+                                <i class="nav-icon fas fa-camera"></i>
+                                <p>{% if current_mode == 'attendance' %}Time In / Out{% else %}Biometric Scan{% endif %}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/settings" class="nav-link">
+                                <i class="nav-icon fas fa-user-cog"></i>
+                                <p>{% if current_mode == 'attendance' %}My Profile{% else %}User Settings{% endif %}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/about" class="nav-link">
+                                <i class="nav-icon fas fa-circle-info"></i>
+                                <p>About</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/logout" class="nav-link text-danger">
+                                <i class="nav-icon fas fa-sign-out-alt"></i>
+                                <p>Logout</p>
+                            </a>
+                        </li>
+                        {% endif %}
                     </ul>
                 </nav>
             </div>
@@ -104,15 +203,22 @@
     </div>
 
     {% else %}
-    <div class="login-box" style="width: 100%; max-width: 400px; padding: 20px;">
-        {% block content_login %}
+        {% if is_home_page %}
+        <div class="home-shell">
+        {% else %}
+        <div class="login-box" style="width: 100%; max-width: {% if request.url.path == '/setup' %}1120px{% else %}400px{% endif %}; padding: 20px;">
+        {% endif %}
             {% block content %}{% endblock %}
-        {% endblock %}
-    </div>
+        {% if is_home_page %}
+        </div>
+        {% else %}
+        </div>
+        {% endif %}
     {% endif %}
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+    <script src="/static/js/table_tools.js"></script>
 </body>
 </html>

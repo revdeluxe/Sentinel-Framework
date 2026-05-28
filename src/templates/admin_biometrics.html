@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+{% block title %}FaceID Management | {{ system_name }}{% endblock %}
+{% block header_title %}FaceID Management{% endblock %}
+
+{% block content %}
+<style>
+    .stat-filter-card {
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+
+    .stat-filter-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-filter-card.active-filter {
+        outline: 3px solid rgba(0, 123, 255, 0.35);
+        outline-offset: 2px;
+    }
+
+    .table-filter-toolbar .form-control,
+    .table-filter-toolbar .custom-select {
+        min-width: 180px;
+    }
+</style>
+
+<div class="row">
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-info stat-filter-card" role="button" tabindex="0" data-filter-mode="all" data-sort-key="username" data-sort-direction="asc">
+            <div class="inner">
+                <h3>{{ total_users }}</h3>
+                <p>Registered Users</p>
+            </div>
+            <div class="icon"><i class="fas fa-users"></i></div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-success stat-filter-card" role="button" tabindex="0" data-filter-mode="enrolled" data-sort-key="face_ready" data-sort-direction="desc">
+            <div class="inner">
+                <h3>{{ face_enrolled }}</h3>
+                <p>Enrolled Faces</p>
+            </div>
+            <div class="icon"><i class="fas fa-fingerprint"></i></div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-warning stat-filter-card" role="button" tabindex="0" data-filter-mode="missing" data-sort-key="face_ready" data-sort-direction="asc">
+            <div class="inner">
+                <h3>{{ face_missing }}</h3>
+                <p>Pending Enrollment</p>
+            </div>
+            <div class="icon"><i class="fas fa-user-clock"></i></div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-primary stat-filter-card" role="button" tabindex="0" data-filter-mode="all" data-sort-key="created_at" data-sort-direction="desc">
+            <div class="inner">
+                <h3>{{ mode|title }}</h3>
+                <p>Active Deployment</p>
+            </div>
+            <div class="icon"><i class="fas fa-layer-group"></i></div>
+        </div>
+    </div>
+</div>
+
+<div class="card card-outline card-primary">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">FaceID Enrollment Status</h3>
+        <a href="/admin/users" class="btn btn-sm btn-primary">
+            <i class="fas fa-user-cog mr-1"></i> Open User Management
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="row table-filter-toolbar mb-3">
+            <div class="col-lg-5 col-md-6 mb-2 mb-md-0">
+                <input type="search" class="form-control" id="faceidSearch" placeholder="Search username, full name, role, or face status...">
+            </div>
+            <div class="col-lg-2 col-md-3 mb-2 mb-md-0">
+                <select class="custom-select" id="roleFilter">
+                    <option value="all">All Roles</option>
+                    <option value="admin">Admin Only</option>
+                    <option value="user">User Only</option>
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-3 mb-2 mb-md-0">
+                <select class="custom-select" id="faceFilter">
+                    <option value="all">All Faces</option>
+                    <option value="enrolled">Enrolled</option>
+                    <option value="missing">Missing</option>
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-12">
+                <button type="button" class="btn btn-outline-secondary btn-block" id="clearFiltersBtn">
+                    <i class="fas fa-eraser mr-1"></i> Clear Filters
+                </button>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+            <small class="text-muted" id="faceidResultSummary">Showing all users</small>
+            <small class="text-muted">Click a stat card above to preset the table view.</small>
+        </div>
+
+        <div class="table-responsive p-0">
+        <table class="table table-striped mb-0" id="faceidTable">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Role</th>
+                    <th>Face Status</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if users %}
+                    {% for user in users %}
+                    <tr
+                        data-username="{{ user.username|lower }}"
+                        data-full-name="{{ user.full_name|lower }}"
+                        data-role="{% if user.is_admin %}admin{% else %}user{% endif %}"
+                        data-face-status="{% if user.face_ready %}enrolled{% else %}missing{% endif %}"
+                        data-created-at="{{ user.created_at }}"
+                    >
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.full_name }}</td>
+                        <td>
+                            {% if user.is_admin %}
+                            <span class="badge badge-warning">Admin</span>
+                            {% else %}
+                            <span class="badge badge-secondary">User</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.face_ready %}
+                            <span class="badge badge-success">Enrolled</span>
+                            {% else %}
+                            <span class="badge badge-danger">Missing</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.created_at }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No user records available yet.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const table = document.getElementById("faceidTable");
+        const searchInput = document.getElementById("faceidSearch");
+        const roleFilter = document.getElementById("roleFilter");
+        const faceFilter = document.getElementById("faceFilter");
+        const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+        const summary = document.getElementById("faceidResultSummary");
+        const cards = Array.from(document.querySelectorAll(".stat-filter-card"));
+        const rows = table ? Array.from(table.querySelectorAll("tbody tr[data-username]")) : [];
+
+        let activePreset = "all";
+        let sortKey = "username";
+        let sortDirection = "asc";
+
+        function normalize(value) {
+            return (value || "").toString().toLowerCase().trim();
+        }
+
+        function compareValues(leftRow, rightRow) {
+            let leftValue = "";
+            let rightValue = "";
+
+            if (sortKey === "face_ready") {
+                leftValue = leftRow.dataset.faceStatus === "enrolled" ? "1" : "0";
+                rightValue = rightRow.dataset.faceStatus === "enrolled" ? "1" : "0";
+            } else if (sortKey === "created_at") {
+                leftValue = leftRow.dataset.createdAt || "";
+                rightValue = rightRow.dataset.createdAt || "";
+            } else {
+                leftValue = leftRow.dataset[sortKey] || "";
+                rightValue = rightRow.dataset[sortKey] || "";
+            }
+
+            if (sortKey === "created_at") {
+                const leftTime = Date.parse(leftValue) || 0;
+                const rightTime = Date.parse(rightValue) || 0;
+                return sortDirection === "desc" ? rightTime - leftTime : leftTime - rightTime;
+            }
+
+            if (sortKey === "face_ready") {
+                const leftScore = Number(leftValue);
+                const rightScore = Number(rightValue);
+                return sortDirection === "desc" ? rightScore - leftScore : leftScore - rightScore;
+            }
+
+            return sortDirection === "desc"
+                ? normalize(rightValue).localeCompare(normalize(leftValue))
+                : normalize(leftValue).localeCompare(normalize(rightValue));
+        }
+
+        function setCardActive(mode, key, direction) {
+            cards.forEach((card) => {
+                const isActive = card.dataset.filterMode === mode && card.dataset.sortKey === key && card.dataset.sortDirection === direction;
+                card.classList.toggle("active-filter", isActive);
+            });
+        }
+
+        function updateSummary(visibleCount) {
+            const totalCount = rows.length;
+            const searchValue = normalize(searchInput?.value);
+            const roleValue = roleFilter?.value || "all";
+            const faceValue = faceFilter?.value || "all";
+            const fragments = [
+                `${visibleCount} of ${totalCount} users visible`,
+                activePreset !== "all" ? `preset: ${activePreset}` : null,
+                searchValue ? `search: ${searchValue}` : null,
+                roleValue !== "all" ? `role: ${roleValue}` : null,
+                faceValue !== "all" ? `face: ${faceValue}` : null,
+            ].filter(Boolean);
+
+            if (summary) {
+                summary.textContent = fragments.join(" | ");
+            }
+        }
+
+        function sortRows(filteredRows) {
+            filteredRows.sort(compareValues);
+        }
+
+        function applyFilters() {
+            if (!table) {
+                return;
+            }
+
+            const searchTerm = normalize(searchInput?.value);
+            const roleValue = roleFilter?.value || "all";
+            const faceValue = faceFilter?.value || "all";
+
+            const filteredRows = rows.filter((row) => {
+                const matchesSearch = !searchTerm || [row.dataset.username, row.dataset.fullName, row.dataset.role, row.dataset.faceStatus].some((value) => normalize(value).includes(searchTerm));
+                const matchesRole = roleValue === "all" || row.dataset.role === roleValue;
+                const matchesFace = faceValue === "all" || row.dataset.faceStatus === faceValue;
+                return matchesSearch && matchesRole && matchesFace;
+            });
+
+            sortRows(filteredRows);
+
+            rows.forEach((row) => {
+                row.style.display = filteredRows.includes(row) ? "" : "none";
+            });
+
+            filteredRows.forEach((row) => table.querySelector("tbody").appendChild(row));
+            updateSummary(filteredRows.length);
+        }
+
+        function applyPreset(mode, key, direction) {
+            activePreset = mode;
+            sortKey = key;
+            sortDirection = direction;
+            if (mode === "enrolled") {
+                faceFilter.value = "enrolled";
+                roleFilter.value = "all";
+            } else if (mode === "missing") {
+                faceFilter.value = "missing";
+                roleFilter.value = "all";
+            } else {
+                faceFilter.value = "all";
+            }
+            setCardActive(mode, key, direction);
+            applyFilters();
+        }
+
+        cards.forEach((card) => {
+            card.addEventListener("click", () => {
+                applyPreset(card.dataset.filterMode || "all", card.dataset.sortKey || "username", card.dataset.sortDirection || "asc");
+            });
+
+            card.addEventListener("keydown", (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    card.click();
+                }
+            });
+        });
+
+        searchInput?.addEventListener("input", () => {
+            activePreset = "custom";
+            setCardActive("", "", "");
+            applyFilters();
+        });
+        roleFilter?.addEventListener("change", () => {
+            activePreset = "custom";
+            setCardActive("", "", "");
+            applyFilters();
+        });
+        faceFilter?.addEventListener("change", () => {
+            activePreset = "custom";
+            setCardActive("", "", "");
+            applyFilters();
+        });
+
+        clearFiltersBtn?.addEventListener("click", () => {
+            searchInput.value = "";
+            roleFilter.value = "all";
+            faceFilter.value = "all";
+            activePreset = "all";
+            sortKey = "username";
+            sortDirection = "asc";
+            setCardActive("all", "username", "asc");
+            applyFilters();
+        });
+
+        applyPreset("all", "username", "asc");
+    });
+</script>
+{% endblock %}

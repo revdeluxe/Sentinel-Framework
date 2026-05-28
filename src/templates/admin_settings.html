@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Sentinel Settings | {{ system_name }}{% endblock %}
+{% block header_title %}Sentinel Settings{% endblock %}
+
+{% block content %}
+{% if flash %}
+<div class="alert alert-success">{{ flash }}</div>
+{% endif %}
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card card-outline card-primary shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">System and FaceID Controls</h3>
+                <span class="badge badge-info">Admin only</span>
+            </div>
+            <form method="post" action="/admin/settings">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>System Name</label>
+                            <input type="text" class="form-control" name="system_name" value="{{ system_name }}">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Deployment Mode</label>
+                            <select class="form-control custom-select" name="deployment_mode">
+                                <option value="gateway" {% if mode == 'gateway' %}selected{% endif %}>Gateway</option>
+                                <option value="kiosk" {% if mode == 'kiosk' %}selected{% endif %}>Kiosk</option>
+                                <option value="attendance" {% if mode == 'attendance' %}selected{% endif %}>Attendance</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>Face Match Threshold</label>
+                            <input type="number" step="0.01" min="0" max="1" class="form-control" name="face_match_threshold" value="{{ config_data.get('face_match_threshold', '0.95') }}">
+                            <small class="form-text text-muted">Lower values are more permissive. Current scanner default is 0.95 if unset.</small>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Face Capture Interval (ms)</label>
+                            <input type="number" min="500" step="100" class="form-control" name="face_capture_interval" value="{{ config_data.get('face_capture_interval', '1500') }}">
+                            <small class="form-text text-muted">Controls how often the browser scanner submits a frame.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">These values are saved in the existing system configuration.</span>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-1"></i> Save Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card card-outline card-secondary mt-4">
+            <div class="card-header">
+                <h3 class="card-title mb-0">What This Controls</h3>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>Sentinel branding and the active deployment mode.</li>
+                    <li>FaceID matching sensitivity used by the biometric pipeline.</li>
+                    <li>Scanner polling interval used by the client camera loop.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

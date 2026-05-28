@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% block title %}{% if hr_mode %}HR Tools | {{ system_name }}{% else %}Stocks & Inventory | {{ system_name }}{% endif %}{% endblock %}
+{% block header_title %}{% if hr_mode %}HR Tools & Attendance{% else %}Stocks & Inventory{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-info" role="button" tabindex="0" data-table-target="#hrUsersTable" data-table-sort-column="Username" data-table-sort-direction="asc">
+            <div class="inner">
+                <h3>{{ mode|title }}</h3>
+                <p>{% if hr_mode %}Current Workforce Mode{% else %}Current Deployment{% endif %}</p>
+            </div>
+            <div class="icon"><i class="fas fa-cubes"></i></div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-success" role="button" tabindex="0" data-table-target="#hrUsersTable" data-table-sort-column="Face Status" data-table-sort-direction="asc">
+            <div class="inner">
+                <h3>{% if hr_mode %}{{ total_users }}{% else %}{% if inventory_ready %}Ready{% else %}Pending{% endif %}{% endif %}</h3>
+                <p>{% if hr_mode %}Employee Profiles{% else %}Inventory Backend{% endif %}</p>
+            </div>
+            <div class="icon"><i class="fas fa-database"></i></div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-warning" role="button" tabindex="0" data-table-target="#hrUsersTable" data-table-sort-column="Created" data-table-sort-direction="desc">
+            <div class="inner">
+                <h3>{% if hr_mode %}{{ monthly_attendance_punches }}{% else %}0{% endif %}</h3>
+                <p>{% if hr_mode %}Monthly Punches{% else %}Tracked Items{% endif %}</p>
+            </div>
+            <div class="icon"><i class="fas fa-box-open"></i></div>
+        </div>
+    </div>
+</div>
+
+<div class="card card-outline card-primary">
+    <div class="card-header">
+        <h3 class="card-title mb-0">{% if hr_mode %}HR Tools Workspace{% else %}Inventory Workspace{% endif %}</h3>
+    </div>
+    <div class="card-body">
+        {% if hr_mode %}
+        <div class="alert alert-info mb-3">
+            This deployment is running in workforce attendance mode, so the old inventory panel now acts as the HR tools hub.
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="card card-outline card-success h-100 mb-0">
+                    <div class="card-body">
+                        <h5 class="font-weight-bold">Attendance Reports</h5>
+                        <p class="text-muted mb-3">Print a monthly attendance sheet for any user and review biometric punch history.</p>
+                        <a href="/attendance/report" class="btn btn-success btn-block">
+                            <i class="fas fa-print mr-1"></i> Print Monthly Attendance
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card card-outline card-primary h-100 mb-0">
+                    <div class="card-body">
+                        <h5 class="font-weight-bold">HR Essentials</h5>
+                        <p class="text-muted mb-3">Manage employees, face enrollment, audit logs, and deployment settings from one workspace.</p>
+                        <div class="d-flex flex-wrap" style="gap: .5rem;">
+                            <a href="/admin/users" class="btn btn-outline-primary">User Accounts</a>
+                            <a href="/admin/biometrics" class="btn btn-outline-primary">FaceID</a>
+                            <a href="/admin/audit" class="btn btn-outline-primary">Audit Logs</a>
+                            <a href="/admin/settings" class="btn btn-outline-primary">Sentinel Settings</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card card-outline card-secondary mb-0">
+            <div class="card-header">
+                <h3 class="card-title mb-0">Employee Snapshot</h3>
+            </div>
+            <div class="card-body table-responsive p-0">
+                <table class="table table-striped mb-0" id="hrUsersTable" data-enhance-table="true" data-table-title="Employee Snapshot">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Full Name</th>
+                            <th>Face Status</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if hr_users %}
+                            {% for user in hr_users %}
+                            <tr>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.full_name }}</td>
+                                <td>
+                                    {% if user.face_ready %}
+                                    <span class="badge badge-success">Enrolled</span>
+                                    {% else %}
+                                    <span class="badge badge-danger">Missing</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user.created_at }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">No employee records available yet.</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% elif inventory_ready %}
+        <div class="alert alert-info mb-0">
+            The kiosk deployment is ready for product and credit inventory, but no inventory table is wired into the current database yet.
+        </div>
+        {% else %}
+        <div class="alert alert-secondary mb-0">
+            Stocks and inventory are exposed as a menu entry, but this deployment mode does not currently manage inventory records.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if hr_mode %}
+<div class="card card-outline card-secondary mt-4">
+    <div class="card-header">
+        <h3 class="card-title mb-0">Monthly Attendance Printout</h3>
+    </div>
+    <div class="card-body">
+        <p class="text-muted mb-3">Open the printable attendance report for the current user or choose another employee from the report page.</p>
+        <div class="d-flex flex-wrap" style="gap: .5rem;">
+            <a href="/attendance/report?user_id={{ request.session.get('user_id') }}" class="btn btn-success">
+                <i class="fas fa-print mr-1"></i> Print My Attendance
+            </a>
+            <a href="/attendance/report" class="btn btn-outline-success">
+                <i class="fas fa-calendar-alt mr-1"></i> Open Report Selector
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card card-outline card-secondary mt-4">
+    <div class="card-header">
+        <h3 class="card-title mb-0">{% if hr_mode %}Other Essentials{% else %}Next Integration Points{% endif %}</h3>
+    </div>
+    <div class="card-body">
+        {% if hr_mode %}
+        <ul class="mb-0">
+            <li>Use the attendance report to print monthly DTR sheets for payroll or filing.</li>
+            <li>Keep face enrollment current so each punch can be tied to the correct employee.</li>
+            <li>Use audit logs to trace enrollment, login, and biometric events.</li>
+        </ul>
+        {% else %}
+        <ul class="mb-0">
+            <li>Connect a stock table or product catalog to persist inventory counts.</li>
+            <li>Hook kiosk payments or voucher issuance into the inventory workflow.</li>
+            <li>Add low-stock alerts once the backend model is in place.</li>
+        </ul>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

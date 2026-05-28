@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}CNN Model Training - {{ system_name }}{% endblock %}
+
+{% block page_title %}CNN Model Training{% endblock %}
+{% block page_subtitle %}Train Liveness &amp; Recognition Models{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/developer">Developer</a></li>
+<li class="breadcrumb-item active">CNN Training</li>
+{% endblock %}
+
+
+{% block content %}
+<div class="mb-3">
+    <a href="/developer" class="btn btn-secondary">
+        <i class="fas fa-arrow-left mr-2"></i>
+        Back to Developer Panel
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-9">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">Training Job Configuration</h3>
+            </div>
+            <form id="trainingForm" action="/developer/cnn-training/start" method="post">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="model_type">Model Type</label>
+                                <select class="form-control" id="model_type" name="model_type">
+                                    <option value="liveness">Liveness Detection (Anti-Spoofing)</option>
+                                    <option value="recognition" disabled>Face Recognition (Coming Soon)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="model_architecture">Model Architecture</label>
+                                <select class="form-control" id="model_architecture" name="model_architecture">
+                                    <option value="mobilenet_v3_small">MobileNetV3 Small (Recommended)</option>
+                                    <option value="efficientnet_lite0">EfficientNet-Lite0</option>
+                                    <option value="custom">Custom (Specify Path)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dataset_id">Dataset</label>
+                        <select class="form-control" id="dataset_id" name="dataset_id">
+                            <option>Loading datasets...</option>
+                        </select>
+                        <small class="form-text text-muted">Select a dataset that has been registered via the Dataset Management page.</small>
+                    </div>
+                    <hr>
+                    <h5>Hyperparameters</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="epochs">Epochs</label>
+                                <input type="number" class="form-control" id="epochs" name="epochs" value="25">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="batch_size">Batch Size</label>
+                                <input type="number" class="form-control" id="batch_size" name="batch_size" value="32">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="learning_rate">Learning Rate</label>
+                                <input type="text" class="form-control" id="learning_rate" name="learning_rate" value="0.001">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Augmentations</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="aug_horizontal_flip" checked>
+                            <label class="form-check-label">Horizontal Flip</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="aug_rotation" checked>
+                            <label class="form-check-label">Random Rotation (10 degrees)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="aug_zoom">
+                            <label class="form-check-label">Random Zoom (10%)</label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card-footer bg-white">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-play-circle mr-2"></i>Start Training Job</button>
+                    <button type="button" class="btn btn-secondary ml-2">Dry Run</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-3">
+        <div class="card card-outline">
+            <div class="card-header">
+                <h3 class="card-title">Training Status</h3>
+            </div>
+            <div id="statusCardBody" class="card-body">
+                <p class="text-center">
+                    <strong>Status</strong><br>
+                    <span id="statusBadge" class="badge badge-secondary" style="font-size: 1.1rem;">Idle</span>
+                </p>
+                <hr>
+                <div id="progressBar" class="progress" style="display: none;">
+                    <div id="progressBarFill" class="progress-bar bg-primary progress-bar-striped" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+                        <span class="sr-only">0% Complete</span>
+                    </div>
+                </div>
+                <pre id="training-log" style="max-height: 300px; overflow-y: scroll; background: #f4f4f4; border: 1px solid #ddd; padding: 10px; display: none; margin-top: 1rem;"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('trainingForm');
+    const statusBadge = document.getElementById('statusBadge');
+    const progressBar = document.getElementById('progressBar');
+    const progressBarFill = document.getElementById('progressBarFill');
+    const trainingLog = document.getElementById('training-log');
+    const datasetSelect = document.getElementById('dataset_id');
+
+    // --- Load Datasets into Dropdown ---
+    async function loadDatasets() {
+        try {
+            const response = await fetch('/api/datasets/list');
+            const datasets = await response.json();
+            datasetSelect.innerHTML = ''; // Clear loading message
+            if (datasets.length === 0) {
+                datasetSelect.innerHTML = '<option value="">No datasets registered yet</option>';
+            } else {
+                datasets.forEach(d => {
+                    if (d.type === 'Liveness') { // Only show Liveness datasets for now
+                        const option = new Option(`${d.name} (${d.path})`, d.id);
+                        datasetSelect.add(option);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Failed to load datasets:', error);
+            datasetSelect.innerHTML = '<option value="">Error loading datasets</option>';
+        }
+    }
+
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // --- UI Update: Start Job ---
+        statusBadge.textContent = 'Queued';
+        statusBadge.className = 'badge badge-info';
+        progressBar.style.display = 'block';
+        progressBarFill.style.width = '0%';
+        progressBarFill.setAttribute('aria-valuenow', '0');
+        trainingLog.style.display = 'block';
+        trainingLog.textContent = 'Job submitted. Waiting for worker to start...';
+        
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.job_id) {
+                // Start polling for status
+                pollStatus(data.job_id);
+            } else {
+                statusBadge.textContent = 'Error';
+                statusBadge.className = 'badge badge-danger';
+                trainingLog.textContent = data.error || 'Failed to start job.';
+            }
+        })
+        .catch(error => {
+            console.error('Error submitting form:', error);
+            statusBadge.textContent = 'Error';
+            statusBadge.className = 'badge badge-danger';
+            trainingLog.textContent = 'An unexpected error occurred.';
+        });
+    });
+
+    function pollStatus(jobId) {
+        const interval = setInterval(() => {
+            fetch(`/developer/jobs/${jobId}/status`)
+                .then(response => response.json())
+                .then(data => {
+                    // Update UI
+                    statusBadge.textContent = data.status;
+                    progressBarFill.style.width = data.progress + '%';
+                    progressBarFill.setAttribute('aria-valuenow', data.progress);
+                    
+                    if (data.log) {
+                        trainingLog.textContent = data.log;
+                    }
+
+                    if (data.status === 'completed' || data.status === 'failed') {
+                        clearInterval(interval);
+                        if(data.status === 'completed') {
+                           statusBadge.className = 'badge badge-success';
+                           progressBarFill.classList.remove('progress-bar-striped');
+                        } else {
+                           statusBadge.className = 'badge badge-danger';
+                        }
+                    } else {
+                         statusBadge.className = 'badge badge-primary';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error polling status:', error);
+                    clearInterval(interval);
+                    statusBadge.textContent = 'Error';
+                    statusBadge.className = 'badge badge-danger';
+                });
+        }, 2000);
+    }
+
+    // --- Initial Load ---
+    loadDatasets();
+});
+</script>
+{% endblock %}

@@ -8,11 +8,16 @@
     /* Scanner HUD Overlay - FaceID Style */
     .scanner-container {
         position: relative;
-        width: 320px;
+        width: min(100%, 420px);
         margin: 0 auto;
         overflow: hidden;
         border-radius: 20px; /* More rounded like mobile */
         box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        background: linear-gradient(180deg, rgba(18,18,18,0.92), rgba(9,9,9,0.98));
+    }
+
+    .scanner-container.is-busy .scan-line {
+        opacity: 0.4;
     }
     
     .scanner-overlay {
@@ -53,6 +58,22 @@
     }
     
     .status-icon { font-size: 2rem; display: block; margin-bottom: 5px; }
+
+    .scan-loader {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border: 3px solid rgba(255,255,255,0.35);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        vertical-align: middle;
+        margin-right: 10px;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
 </style>
 
 <div class="row justify-content-center">
@@ -63,7 +84,7 @@
             </div>
             <div class="card-body bg-black p-4 text-center" style="background-color: #121212;">
                 
-                <div class="scanner-container">
+                <div class="scanner-container" id="scanner-container" data-api-endpoint="/api/biometric-auth" data-poll-interval="{{ face_capture_interval }}" data-capture-size="160">
                     <div class="scanner-overlay" id="scan-border">
                         <div class="scan-line" id="scan-line"></div>
                     </div>
@@ -73,9 +94,9 @@
                         Initializing...
                     </div>
 
-                    <video id="video" width="320" height="240" autoplay playsinline style="width: 100%; display: block; transform: scaleX(-1);"></video>
+                    <video id="video" width="320" height="240" autoplay muted playsinline style="width: 100%; display: block; transform: scaleX(-1);"></video>
                     
-                    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+                    <canvas id="canvas" width="160" height="160" style="display:none;"></canvas>
                 </div>
 
                 <div class="mt-3 text-muted small">
@@ -86,77 +107,5 @@
     </div>
 </div>
 
-<script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const statusText = document.getElementById('status-text');
-    const scanBorder = document.getElementById('scan-border');
-    
-    let isScanning = true;
-
-    // 1. Start Camera
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
-            .then(function(stream) {
-                video.srcObject = stream;
-                video.play();
-                statusText.innerHTML = '<i class="fas fa-dot-circle status-icon text-primary"></i> Scanning...';
-                
-                // Start the polling loop
-                setInterval(processFrame, 1500); // Check every 1.5 seconds
-            })
-            .catch(function(err) {
-                statusText.innerHTML = '<i class="fas fa-exclamation-triangle status-icon text-danger"></i> Camera Error';
-            });
-    }
-
-    // 2. The Loop: Capture -> Send -> React
-    async function processFrame() {
-        if (!isScanning) return;
-
-        // Draw current video frame to canvas
-        const context = canvas.getContext('2d');
-        context.drawImage(video, 0, 0, 320, 240);
-        
-        // Convert to Base64 String
-        const imageData = canvas.toDataURL('image/jpeg', 0.8); // 80% quality JPEG
-
-        // Send to Backend API
-        try {
-            const response = await fetch('/api/biometric-auth', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_b64: imageData })
-            });
-
-            const result = await response.json();
-
-            if (result.status === "success") {
-                handleSuccess(result.user);
-            } else if (result.status === "unknown") {
-                statusText.innerHTML = '<i class="fas fa-user-slash status-icon text-warning"></i> Face Not Recognized';
-                scanBorder.style.borderColor = "rgba(255, 193, 7, 0.5)"; // Yellow border
-            } else {
-                statusText.innerHTML = '<i class="fas fa-spinner fa-spin status-icon text-white"></i> Analyzing...';
-                scanBorder.style.borderColor = "rgba(255, 255, 255, 0.2)";
-            }
-
-        } catch (error) {
-            console.error("API Error:", error);
-        }
-    }
-
-    function handleSuccess(username) {
-        isScanning = false;
-        // Visual Feedback: Green Border & Checkmark
-        scanBorder.style.borderColor = "#28a745"; // Green
-        document.getElementById('scan-line').style.display = 'none'; // Stop scan line
-        statusText.innerHTML = `<i class="fas fa-check-circle status-icon text-success"></i> Welcome, ${username}`;
-        
-        // Redirect after short delay
-        setTimeout(() => {
-            window.location.href = "/success"; // Redirect to Success Page
-        }, 1500);
-    }
-</script>
+<script src="/static/js/biometric_scan.js" defer></script>
 {% endblock %}

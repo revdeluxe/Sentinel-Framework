@@ -8,3 +8,4 @@ python-multipart
 itsdangerous
 numpy
 Pillow
+sqlite-vec

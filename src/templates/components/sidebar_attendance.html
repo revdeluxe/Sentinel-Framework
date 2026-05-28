@@ -1,19 +1,58 @@
-<li class="nav-header">HR & AUDIT</li>
+<li class="nav-header">WORKFORCE TOOLS</li>
+{% if request.session.get("developer_access") %}
+<li class="nav-item has-treeview">
+    <a href="#" class="nav-link">
+        <i class="nav-icon fas fa-code"></i>
+        <p>
+            Developer
+            <i class="right fas fa-angle-left"></i>
+        </p>
+    </a>
+    <ul class="nav nav-treeview">
+        <li class="nav-item">
+            <a href="/developer" class="nav-link">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Developer Panel</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/developer/cnn-training" class="nav-link">
+                <i class="far fa-circle nav-icon"></i>
+                <p>CNN Training</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/developer/data-import" class="nav-link">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Data Import</p>
+            </a>
+        </li>
+    </ul>
+</li>
+{% endif %}
 <li class="nav-item">
     <a href="/admin" class="nav-link">
         <i class="nav-icon fas fa-tachometer-alt"></i>
-        <p>Dashboard</p>
+        <p>Workforce Dashboard</p>
     </a>
 </li>
 <li class="nav-item">
     <a href="/admin/biometrics" class="nav-link">
         <i class="nav-icon fas fa-id-card"></i>
-        <p>Accounts & FaceID</p>
+        <p>Employee Profiles</p>
+    </a>
+</li>
+{% if request.session.get("is_superuser") %}
+<li class="nav-item">
+    <a href="/admin/stocks" class="nav-link">
+        <i class="nav-icon fas fa-boxes"></i>
+        <p>HR Tools</p>
     </a>
 </li>
 <li class="nav-item">
     <a href="/admin/audit" class="nav-link">
         <i class="nav-icon fas fa-clipboard-list"></i>
-        <p>Audit Logs</p>
+        <p>Attendance Logs</p>
     </a>
 </li>
+{% endif %}

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}Admin Keys | {{ system_name }}{% endblock %}
+{% block header_title %}Admin Key Manager{% endblock %}
+
+{% block content %}
+{% if flash %}
+<div class="alert alert-success">{{ flash }}</div>
+{% endif %}
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-info" role="button" tabindex="0" data-table-target="#adminKeysTable" data-table-sort-column="Current Key" data-table-sort-direction="desc">
+            <div class="inner">
+                <h3>{{ total_keys }}</h3>
+                <p>Assigned Keys</p>
+            </div>
+            <div class="icon"><i class="fas fa-key"></i></div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-success" role="button" tabindex="0" data-table-target="#adminKeysTable" data-table-sort-column="Username" data-table-sort-direction="asc">
+            <div class="inner">
+                <h3>{{ users|length }}</h3>
+                <p>Total Users</p>
+            </div>
+            <div class="icon"><i class="fas fa-users"></i></div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-warning" role="button" tabindex="0" data-table-target="#adminKeysTable" data-table-sort-column="Role" data-table-sort-direction="asc">
+            <div class="inner">
+                <h3>{{ mode|title }}</h3>
+                <p>Active Deployment</p>
+            </div>
+            <div class="icon"><i class="fas fa-shield-alt"></i></div>
+        </div>
+    </div>
+</div>
+
+<div class="card card-outline card-primary">
+    <div class="card-header">
+        <h3 class="card-title mb-0">Superuser Key Registry</h3>
+    </div>
+    <div class="card-body table-responsive p-0">
+        <table class="table table-striped mb-0" id="adminKeysTable" data-enhance-table="true" data-table-title="Admin Keys">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Current Key</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if users %}
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.full_name }}</td>
+                        <td>
+                            {% if user.admin_key %}
+                            <code>{{ user.admin_key }}</code>
+                            {% else %}
+                            <span class="text-muted">None</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_admin %}
+                            <span class="badge badge-warning">Admin</span>
+                            {% elif user.admin_key %}
+                            <span class="badge badge-info">Privileged</span>
+                            {% else %}
+                            <span class="badge badge-secondary">User</span>
+                            {% endif %}
+                        </td>
+                        <td style="min-width: 260px;">
+                            <form method="post" action="/admin/keys/{{ user.id }}/update" class="d-inline-flex align-items-center mb-1" style="gap: 0.5rem;">
+                                <input type="text" class="form-control form-control-sm" name="admin_key" value="{{ user.admin_key }}" placeholder="Set admin key" style="min-width: 180px;">
+                                <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                            </form>
+                            <form method="post" action="/admin/keys/{{ user.id }}/clear" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" {% if not user.admin_key %}disabled{% endif %}>Clear</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No users found.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card card-outline card-secondary mt-4">
+    <div class="card-header">
+        <h3 class="card-title mb-0">Behavior</h3>
+    </div>
+    <div class="card-body">
+        <p class="mb-0 text-muted">
+            Users become privileged when they have a non-empty admin key or are marked as a root admin. Changes here update the existing <code>User.admin_key</code> field.
+        </p>
+    </div>
+</div>
+{% endblock %}

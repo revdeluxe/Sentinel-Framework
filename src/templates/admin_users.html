@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block title %}User Management | Sentinel{% endblock %}
+{% block header_title %}User Management{% endblock %}
+
+{% block content %}
+{% if flash %}
+<div class="alert alert-success">{{ flash }}</div>
+{% endif %}
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<div class="card card-outline card-primary mb-4">
+    <div class="card-header">
+        <h3 class="card-title mb-0">Register New User</h3>
+    </div>
+    <form method="post" action="/admin/users/create">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 form-group">
+                    <label>Username</label>
+                    <input type="text" class="form-control" name="username" required>
+                </div>
+                <div class="col-md-4 form-group">
+                    <label>Full Name</label>
+                    <input type="text" class="form-control" name="full_name">
+                </div>
+                <div class="col-md-4 form-group">
+                    <label>Password</label>
+                    <input type="password" class="form-control" name="password" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 form-group">
+                    <label>Admin Key (optional)</label>
+                    <input type="text" class="form-control" name="admin_key" placeholder="Optional privilege key">
+                </div>
+                <div class="col-md-4 d-flex align-items-center">
+                    <div class="custom-control custom-switch mt-3">
+                        <input type="checkbox" class="custom-control-input" id="is_admin" name="is_admin">
+                        <label class="custom-control-label" for="is_admin">Grant Admin Role</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-right">
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="fas fa-user-plus mr-1"></i> Create User
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="card card-outline card-info">
+    <div class="card-header">
+        <h3 class="card-title mb-0">Existing Users</h3>
+    </div>
+    <div class="card-body table-responsive p-0">
+        <table class="table table-striped mb-0" id="adminUsersTable" data-enhance-table="true" data-table-title="User Management">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Role</th>
+                    <th>Face Data</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if users %}
+                    {% for u in users %}
+                    <tr>
+                        <td>{{ u.id }}</td>
+                        <td>{{ u.username }}</td>
+                        <td>{{ u.full_name }}</td>
+                        <td>
+                            {% if u.is_admin %}
+                            <span class="badge badge-warning">Admin</span>
+                            {% else %}
+                            <span class="badge badge-secondary">User</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if u.face_ready %}
+                            <span class="badge badge-success">Ready</span>
+                            {% else %}
+                            <span class="badge badge-warning">Missing</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ u.created_at }}</td>
+                        <td>
+                            {% if is_superuser and current_user_id != u.id %}
+                            <form method="post" action="/admin/users/{{ u.id }}/delete" onsubmit="return confirm('Delete user {{ u.username }}?');" class="d-inline">
+                                <button class="btn btn-xs btn-danger" type="submit">Delete</button>
+                            </form>
+                            {% elif current_user_id == u.id %}
+                            <span class="text-muted small">Current session</span>
+                            {% else %}
+                            <span class="text-muted small">Limited admin</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">No users found.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Audit Logs | {{ system_name }}{% endblock %}
+{% block header_title %}Audit Logs{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-info" role="button" tabindex="0" data-table-target="#auditTable" data-table-sort-column="Timestamp" data-table-sort-direction="desc">
+            <div class="inner">
+                <h3>{{ total_logs }}</h3>
+                <p>Total Entries</p>
+            </div>
+            <div class="icon"><i class="fas fa-clipboard-list"></i></div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-success" role="button" tabindex="0" data-table-target="#auditTable" data-table-sort-column="Timestamp" data-table-sort-direction="desc">
+            <div class="inner">
+                <h3>{% if latest_log %}Yes{% else %}No{% endif %}</h3>
+                <p>Recent Activity</p>
+            </div>
+            <div class="icon"><i class="fas fa-clock"></i></div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-warning" role="button" tabindex="0" data-table-target="#auditTable" data-table-sort-column="Event Type" data-table-sort-direction="asc">
+            <div class="inner">
+                <h3>{{ mode|title }}</h3>
+                <p>Active Deployment</p>
+            </div>
+            <div class="icon"><i class="fas fa-layer-group"></i></div>
+        </div>
+    </div>
+</div>
+
+<div class="card card-outline card-primary">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">System Audit Trail</h3>
+        <a href="/admin" class="btn btn-sm btn-primary">
+            <i class="fas fa-tachometer-alt mr-1"></i> Back to Dashboard
+        </a>
+    </div>
+    <div class="card-body table-responsive p-0">
+        <table class="table table-striped mb-0" id="auditTable" data-enhance-table="true" data-table-title="Audit Logs">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>User ID</th>
+                    <th>Event Type</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if logs %}
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.timestamp }}</td>
+                        <td>{{ log.user_id if log.user_id is not none else '-' }}</td>
+                        <td>
+                            <span class="badge badge-info">{{ log.event_type }}</span>
+                        </td>
+                        <td>{{ log.details }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">No audit entries available yet.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card card-outline card-secondary mt-4">
+    <div class="card-header">
+        <h3 class="card-title mb-0">Audit Notes</h3>
+    </div>
+    <div class="card-body">
+        <p class="mb-0 text-muted">
+            This page reads from the existing <code>Log</code> table. If you want event capture, the next step is to write to that table at login, biometric matches, and admin actions.
+        </p>
+    </div>
+</div>
+{% endblock %}

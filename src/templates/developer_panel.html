@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Developer Panel - {{ system_name }}{% endblock %}
+
+{% block page_title %}Developer Panel{% endblock %}
+{% block page_subtitle %}Advanced System Tools{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h5 class="card-title m-0">Model Training</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="card-title">CNN Liveness &amp; Recognition Models</h6>
+                <p class="card-text">Train, validate, and manage deep learning models for the Sentinel Framework. Use this tool to launch training jobs for liveness detectors or face recognition models.</p>
+                <a href="/developer/cnn-training" class="btn btn-primary">
+                    <i class="fas fa-brain mr-2"></i>Go to CNN Training
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h5 class="card-title m-0">Data Management</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="card-title">Dataset Importer</h6>
+                <p class="card-text">Import and prepare datasets for model training. This tool supports importing from Kaggle and local directories, structuring the data for training jobs.</p>
+                <a href="/developer/data-import" class="btn btn-primary">
+                    <i class="fas fa-database mr-2"></i>Go to Data Import
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">System Information</h3>
+            </div>
+            <div class="card-body">
+                <p><strong>Deployment Mode:</strong> <span class="badge badge-info">{{ mode }}</span></p>
+                <p><strong>Developer Access Key:</strong> <span class="badge badge-success">Loaded</span></p>
+                <p><strong>Superuser Status:</strong> {% if is_superuser %}<span class="badge badge-warning">Active</span>{% else %}<span class="badge badge-secondary">Inactive</span>{% endif %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

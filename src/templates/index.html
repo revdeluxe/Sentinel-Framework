@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Home | {{ system_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card card-outline card-primary shadow-lg border-0 overflow-hidden">
+            <div class="row no-gutters">
+                <div class="col-lg-5 bg-dark text-white p-4 p-lg-5 d-flex flex-column justify-content-between" style="background: linear-gradient(180deg, #111827 0%, #1f2937 100%);">
+                    <div>
+                        <span class="badge badge-light text-dark mb-3 px-3 py-2">Secure Identity Middleware</span>
+                        <h1 class="display-4 font-weight-bold mb-3" style="line-height: 1.05;">{{ system_name }}</h1>
+                        <p class="lead text-white-50 mb-0">
+                            {% if mode == 'attendance' %}
+                            Workforce attendance and DTR scanning for time in, time out, and shift tracking.
+                            {% elif mode == 'kiosk' %}
+                            A biometric access layer for self-service kiosks and controlled entry points.
+                            {% else %}
+                            A biometric access layer for gateways, kiosks, and attendance workflows.
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="/scan" class="btn btn-success btn-lg btn-block mb-2">
+                            <i class="fas fa-camera mr-2"></i> Start Biometric Scan
+                        </a>
+                        {% if is_admin %}
+                        <a href="/" class="btn btn-outline-info btn-lg btn-block mb-2">
+                            <i class="fas fa-user mr-2"></i> User Dashboard
+                        </a>
+                        <a href="/admin" class="btn btn-outline-warning btn-lg btn-block mb-2">
+                            <i class="fas fa-user-shield mr-2"></i> Admin Dashboard
+                        </a>
+                        {% endif %}
+                        <a href="/login" class="btn btn-outline-light btn-lg btn-block">
+                            <i class="fas fa-sign-in-alt mr-2"></i> Sign In
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-lg-7 bg-white p-4 p-lg-5">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <div>
+                            <h2 class="h3 mb-1 text-dark">Welcome</h2>
+                            <p class="text-muted mb-0">
+                                {% if mode == 'attendance' %}
+                                Choose the attendance workflow that matches your shift check-in setup.
+                                {% elif mode == 'kiosk' %}
+                                Choose the access flow that matches your self-service kiosk setup.
+                                {% else %}
+                                Choose the access flow that matches your deployment.
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            {% if is_admin %}
+                            <span class="badge badge-warning px-3 py-2">Admin Session</span>
+                            {% elif user_id %}
+                            <span class="badge badge-success px-3 py-2">Authenticated</span>
+                            {% else %}
+                            <span class="badge badge-secondary px-3 py-2">Guest View</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="small-box bg-info mb-0 h-100">
+                                <div class="inner">
+                                    <h3><i class="fas fa-fingerprint"></i></h3>
+                                    <p>{% if mode == 'attendance' %}Timekeeping Access{% else %}Biometric Access{% endif %}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="small-box bg-success mb-0 h-100">
+                                <div class="inner">
+                                    <h3><i class="fas fa-network-wired"></i></h3>
+                                    <p>{% if mode == 'attendance' %}DTR Ready{% else %}Gateway Ready{% endif %}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="small-box bg-warning mb-0 h-100">
+                                <div class="inner">
+                                    <h3><i class="fas fa-clock"></i></h3>
+                                    <p>{% if mode == 'attendance' %}Workforce Mode{% else %}Attendance Mode{% endif %}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card card-outline card-secondary mt-2 mb-0">
+                        <div class="card-body">
+                            <h5 class="text-dark font-weight-bold mb-3">Quick Actions</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <a href="/scan" class="btn btn-outline-primary btn-block btn-lg">
+                                        <i class="fas fa-camera-retro mr-2"></i> {% if mode == 'attendance' %}Open Attendance Scanner{% else %}Open Scanner{% endif %}
+                                    </a>
+                                </div>
+                                <div class="col-md-6">
+                                    {% if is_admin %}
+                                    <a href="/admin" class="btn btn-outline-warning btn-block btn-lg mb-2">
+                                        <i class="fas fa-user-shield mr-2"></i> Admin Dashboard
+                                    </a>
+                                    {% else %}
+                                    <a href="/logout" class="btn btn-outline-danger btn-block btn-lg">
+                                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <p class="text-muted small mt-3 mb-0">
+                                {% if mode == 'attendance' %}
+                                Use the scanner to record DTR attendance, or sign in to reach the administrative dashboard.
+                                {% else %}
+                                Use the scanner for face verification, or sign in to reach the administrative dashboard.
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

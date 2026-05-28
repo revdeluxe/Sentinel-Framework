@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block title %}FaceID Debugging | {{ system_name }}{% endblock %}
+{% block header_title %}FaceID Debugging{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-info" role="button" tabindex="0" data-table-target="#faceDebugTable" data-table-sort-column="Timestamp" data-table-sort-direction="desc">
+            <div class="inner">
+                <h3>{{ total_logs }}</h3>
+                <p>FaceID Events</p>
+            </div>
+            <div class="icon"><i class="fas fa-bug"></i></div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-success" role="button" tabindex="0" data-table-target="#faceDebugTable" data-table-sort-column="Event" data-table-sort-direction="asc">
+            <div class="inner">
+                <h3>{{ config_data.get('face_match_threshold', '0.95') }}</h3>
+                <p>Match Threshold</p>
+            </div>
+            <div class="icon"><i class="fas fa-sliders-h"></i></div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-warning" role="button" tabindex="0" data-table-target="#faceDebugTable" data-table-sort-column="User ID" data-table-sort-direction="asc">
+            <div class="inner">
+                <h3>{{ config_data.get('face_capture_interval', '1500') }} ms</h3>
+                <p>Capture Interval</p>
+            </div>
+            <div class="icon"><i class="fas fa-camera-retro"></i></div>
+        </div>
+    </div>
+</div>
+
+<div class="card card-outline card-primary">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">Recent FaceID Logs</h3>
+        <a href="/admin/settings" class="btn btn-sm btn-primary">
+            <i class="fas fa-sliders-h mr-1"></i> Sentinel Settings
+        </a>
+    </div>
+    <div class="card-body table-responsive p-0">
+        <table class="table table-striped mb-0" id="faceDebugTable" data-enhance-table="true" data-table-title="FaceID Logs">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>User ID</th>
+                    <th>Event</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if face_logs %}
+                    {% for log in face_logs %}
+                    <tr>
+                        <td>{{ log.timestamp }}</td>
+                        <td>{{ log.user_id if log.user_id is not none else '-' }}</td>
+                        <td>
+                            {% if 'SUCCESS' in log.event_type %}
+                            <span class="badge badge-success">{{ log.event_type }}</span>
+                            {% else %}
+                            <span class="badge badge-warning">{{ log.event_type }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ log.details }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">No FaceID debug entries yet.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card card-outline card-secondary mt-4">
+    <div class="card-header">
+        <h3 class="card-title mb-0">Debug Notes</h3>
+    </div>
+    <div class="card-body">
+        <ul class="mb-0">
+            <li>Successful matches and unknown frames are written from the biometric API.</li>
+            <li>Threshold and polling interval are controlled from Sentinel Settings.</li>
+            <li>Use this page when troubleshooting camera capture, recognition, or enrollment behavior.</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card card-outline card-success mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">Face Enrollment</h3>
+        <span class="badge badge-success">Admin tools</span>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-lg-7">
+                <div class="border rounded p-2 bg-dark">
+                    <div data-face-enroll-widget data-face-enroll-api="/api/biometric-enroll" data-capture-size="160" data-face-enroll-target="">
+                        <input type="hidden" data-face-enroll-target value="">
+                        <div class="form-group mb-2">
+                            <label class="text-white mb-1 d-block">Target User</label>
+                            <div class="d-flex flex-wrap align-items-center" style="gap: 0.5rem;">
+                                <button type="button" class="btn btn-outline-light btn-sm" data-toggle="modal" data-target="#faceEnrollUserModal">
+                                    <i class="fas fa-users mr-1"></i> Choose User
+                                </button>
+                                <span class="badge badge-secondary" data-face-enroll-selected-name>No user selected</span>
+                            </div>
+                        </div>
+                        <div class="text-center mb-2">
+                            <video data-face-enroll-video autoplay muted playsinline style="width: 100%; max-width: 360px; border-radius: 12px; transform: scaleX(-1);"></video>
+                            <canvas data-face-enroll-canvas width="160" height="160" style="display:none;"></canvas>
+                        </div>
+                        <p data-face-enroll-status class="text-light small mb-0">Choose a user, open the camera, then enroll their face.</p>
+                        <div class="mt-3 d-flex flex-wrap" style="gap: 0.5rem;">
+                            <button type="button" class="btn btn-success" data-face-enroll-start>
+                                <i class="fas fa-camera mr-1"></i> Open Camera
+                            </button>
+                            <button type="button" class="btn btn-primary" data-face-enroll-submit>
+                                <i class="fas fa-fingerprint mr-1"></i> Enroll Face
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" data-face-enroll-stop>
+                                Stop Camera
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5 mt-3 mt-lg-0">
+                <h5>Notes</h5>
+                <ul class="small text-muted pl-3 mb-0">
+                    <li>This uses the same transaction-safe enrollment endpoint as user settings.</li>
+                    <li>New enrollment overwrites the previous face record for that user.</li>
+                    <li>Only the selected account is updated.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="faceEnrollUserModal" tabindex="-1" role="dialog" aria-labelledby="faceEnrollUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="faceEnrollUserModalLabel">Select a User to Enroll</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    {% for user in users %}
+                    <div class="col-md-6 mb-3">
+                        <button type="button" class="btn btn-light btn-block text-left border user-select-option" data-user-id="{{ user.id }}" data-user-label="{{ user.username }} - {{ user.full_name }}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="font-weight-bold">{{ user.username }}</div>
+                                    <div class="small text-muted">{{ user.full_name }}</div>
+                                </div>
+                                <span class="badge {% if user.face_ready %}badge-success{% else %}badge-secondary{% endif %}">{{ "Enrolled" if user.face_ready else "No Face" }}</span>
+                            </div>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/face_enroll.js"></script>
+{% endblock %}

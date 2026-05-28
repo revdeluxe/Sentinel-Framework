@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}About | {{ system_name }}{% endblock %}
+{% block header_title %}About Sentinel{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card card-outline card-primary shadow-sm">
+            <div class="card-header">
+                <h3 class="card-title mb-0">System Overview</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h4 class="mb-3">{{ system_name }}</h4>
+                        <p class="text-muted">
+                            Sentinel is a biometric identity and attendance platform designed for controlled access,
+                            user self-service, and workforce timekeeping. The current deployment mode is <strong>{{ mode|title }}</strong>.
+                        </p>
+
+                        <h5 class="mt-4">Privacy and data handling</h5>
+                        <ul class="text-muted">
+                            <li>Face embeddings are stored as biometric templates for matching and enrollment.</li>
+                            <li>User settings are scoped to the signed-in account, and admin tools are restricted by role.</li>
+                            <li>Attendance and biometric events are recorded as audit logs for traceability.</li>
+                            <li>Use HTTPS, role-based access, retention limits, and consent flows in production deployments.</li>
+                        </ul>
+
+                        <h5 class="mt-4">ISO-aligned controls</h5>
+                        <ul class="text-muted mb-0">
+                            <li>Access control and least privilege for administrative actions.</li>
+                            <li>Auditability for identity, enrollment, and attendance events.</li>
+                            <li>Configuration separation between deployment modes and user-facing features.</li>
+                            <li>Operational review for privacy, retention, and incident response before production use.</li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-4 mt-4 mt-lg-0">
+                        <div class="small-box bg-info">
+                            <div class="inner">
+                                <h3>{{ mode|title }}</h3>
+                                <p>Active Mode</p>
+                            </div>
+                            <div class="icon"><i class="fas fa-layer-group"></i></div>
+                        </div>
+                        <div class="small-box bg-success">
+                            <div class="inner">
+                                <h3>Audit Ready</h3>
+                                <p>Logs and attendance traces</p>
+                            </div>
+                            <div class="icon"><i class="fas fa-shield-halved"></i></div>
+                        </div>
+                        <div class="small-box bg-warning mb-0">
+                            <div class="inner">
+                                <h3>Self-Service</h3>
+                                <p>Profile and face enrollment</p>
+                            </div>
+                            <div class="icon"><i class="fas fa-user-gear"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

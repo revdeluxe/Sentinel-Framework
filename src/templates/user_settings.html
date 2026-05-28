@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}User Settings | {{ system_name }}{% endblock %}
+{% block header_title %}User Settings{% endblock %}
+
+{% block content %}
+{% if flash %}
+<div class="alert alert-success">{{ flash }}</div>
+{% endif %}
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-outline card-primary shadow-sm">
+            <div class="card-header">
+                <h3 class="card-title mb-0">Profile and Security</h3>
+            </div>
+            <form method="post" action="/settings">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>Username</label>
+                            <input type="text" class="form-control" value="{{ user.username }}" readonly>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" name="email" value="{{ user.email or '' }}" placeholder="you@example.com">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 form-group">
+                            <label>Full Name</label>
+                            <input type="text" class="form-control" name="full_name" value="{{ user.full_name or '' }}" placeholder="Your full name">
+                        </div>
+                    </div>
+
+                    <hr>
+                    <h5 class="mb-3">Change Password</h5>
+                    <div class="row">
+                        <div class="col-md-4 form-group">
+                            <label>Current Password</label>
+                            <input type="password" class="form-control" name="current_password" required>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label>New Password</label>
+                            <input type="password" class="form-control" name="new_password" placeholder="Leave blank to keep current">
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" class="form-control" name="confirm_password" placeholder="Repeat new password">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Changes apply only to your account.</span>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card card-outline card-success shadow-sm mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">FaceID Enrollment</h3>
+                <span class="badge badge-success">Self-service</span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-7">
+                        <div class="border rounded p-2 bg-dark" style="overflow: hidden; border-color: #2f3542;">
+                            <div data-face-enroll-widget data-face-enroll-api="/api/biometric-enroll" data-face-enroll-user-id="{{ user.id }}" data-capture-size="160">
+                                <div class="text-center mb-2">
+                                    <video data-face-enroll-video autoplay muted playsinline style="width: 100%; max-width: 360px; border-radius: 12px; transform: scaleX(-1);"></video>
+                                    <canvas data-face-enroll-canvas width="160" height="160" style="display:none;"></canvas>
+                                </div>
+                                <p data-face-enroll-status class="text-light small mb-0">Open the camera to capture your face.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5 mt-3 mt-lg-0">
+                        <h5 class="text-dark">How it works</h5>
+                        <ul class="small text-muted pl-3">
+                            <li>Use the same camera flow as FaceID login.</li>
+                            <li>The capture is normalized to a 160x160 face crop before upload.</li>
+                            <li>Your face replaces any previous enrollment tied to this account.</li>
+                        </ul>
+                        <div class="d-flex flex-wrap" style="gap: 0.5rem;">
+                            <button type="button" class="btn btn-success" data-face-enroll-start>
+                                <i class="fas fa-camera mr-1"></i> Open Camera
+                            </button>
+                            <button type="button" class="btn btn-primary" data-face-enroll-submit>
+                                <i class="fas fa-fingerprint mr-1"></i> Enroll Face
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" data-face-enroll-stop>
+                                Stop Camera
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-outline card-info shadow-sm mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">Monthly Attendance</h3>
+                <span class="badge badge-info">Printable</span>
+            </div>
+            <div class="card-body d-flex flex-wrap justify-content-between align-items-center" style="gap: .75rem;">
+                <div>
+                    <h5 class="mb-1">Print your monthly DTR</h5>
+                    <p class="text-muted mb-0">Generate a printable attendance sheet from your biometric punch history.</p>
+                </div>
+                <a href="/attendance/report?user_id={{ user.id }}" class="btn btn-info">
+                    <i class="fas fa-print mr-1"></i> Print My Attendance
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/face_enroll.js"></script>
+{% endblock %}
